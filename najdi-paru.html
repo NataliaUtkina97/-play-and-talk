@@ -1,0 +1,533 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Игра "Найди пару"</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap');
+
+        /* --- Новые стили для игры --- */
+
+        /* Плавный переход для всех элементов */
+        * {
+            transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+        }
+
+        /* Изменение курсора на более дружелюбный */
+        body {
+            font-family: 'Fredoka', 'Comic Sans MS', cursive, sans-serif;
+            text-align: center;
+            background: linear-gradient(135deg, #e3f2fd, #bbdefb);
+            margin: 0;
+            padding: 0;
+            color: #2c3e50;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            justify-content: center;
+            min-height: 100vh;
+            overflow-x: hidden;
+            cursor: url('https://raw.githubusercontent.com/google/material-design-icons/master/png/action/2x/baseline_touch_app_black_24dp.png') 12 12, auto;
+        }
+
+        /* Улучшенные стили для кнопки "Назад" */
+        #backButton {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 10px 20px;
+            font-size: 18px;
+            background: rgba(255, 255, 255, 0.85);
+            border: 2px solid #78909c;
+            border-radius: 12px;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.15);
+            color: #455a64;
+            font-weight: bold;
+        }
+
+        #backButton:hover {
+            background: #fff;
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+        }
+
+        /* Увеличенный и анимированный заголовок */
+        h1 {
+            font-size: 4em;
+            color: #0d47a1;
+            margin-top: 80px;
+            margin-bottom: 20px;
+            text-shadow: 4px 4px 8px rgba(0, 0, 0, 0.15);
+            animation: bounceIn 1s ease-out;
+        }
+
+        /* Анимация для заголовка при загрузке */
+        @keyframes bounceIn {
+            0%, 20%, 40%, 60%, 80%, 100% {
+                transition-timing-function: cubic-bezier(0.215, 0.61, 0.355, 1);
+            }
+            0% {
+                opacity: 0;
+                transform: scale3d(0.3, 0.3, 0.3);
+            }
+            20% {
+                transform: scale3d(1.1, 1.1, 1.1);
+            }
+            40% {
+                transform: scale3d(0.9, 0.9, 0.9);
+            }
+            60% {
+                opacity: 1;
+                transform: scale3d(1.03, 1.03, 1.03);
+            }
+            80% {
+                transform: scale3d(0.97, 0.97, 0.97);
+            }
+            100% {
+                opacity: 1;
+                transform: scale3d(1, 1, 1);
+            }
+        }
+
+        /* Улучшенные стили для панели информации */
+        #game-info {
+            font-size: 2.2em;
+            color: #1a237e;
+            margin-bottom: 25px;
+            padding: 15px 30px;
+            border: 2px solid #90caf9;
+            background: rgba(255, 255, 255, 0.8);
+            border-radius: 15px;
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Улучшенная сетка игрового поля */
+        #game-board {
+            display: grid;
+            grid-template-columns: repeat(4, 1fr);
+            gap: 25px;
+            max-width: 900px;
+            width: 90vw;
+            background-color: rgba(255, 255, 255, 0.95);
+            padding: 40px;
+            border-radius: 30px;
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.25);
+            position: relative;
+        }
+
+        /* Обновленные стили карт */
+        .card {
+            background-color: #ecf0f1;
+            height: 160px;
+            border-radius: 20px;
+            cursor: pointer;
+            position: relative;
+            transform-style: preserve-3d;
+            transition: transform 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.18);
+            border: 3px solid #64b5f6;
+        }
+
+        .card:hover {
+            transform: scale(1.05) rotateY(0deg) translateZ(10px);
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.25);
+        }
+
+        .card.flipped {
+            transform: rotateY(180deg) scale(1.05);
+        }
+
+        .card-front, .card-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            border-radius: 20px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        /* Обновленный стиль "рубашки" карты */
+        .card-back {
+            background: linear-gradient(135deg, #1976d2, #2196f3);
+            border: 2px solid #fff;
+        }
+
+        /* Обновленный стиль "лица" карты */
+        .card-front {
+            transform: rotateY(180deg);
+            background: #ffffff;
+            border: 2px solid #ccc;
+            color: #455a64;
+            font-size: 2.2em;
+            padding: 5px;
+            box-sizing: border-box;
+        }
+
+        .card-front img {
+            max-width: 90%;
+            max-height: 90%;
+            border-radius: 15px;
+            object-fit: contain;
+        }
+
+        .matched {
+            pointer-events: none;
+            animation: match-fade 0.6s ease-out forwards;
+        }
+        
+        @keyframes match-fade {
+            from { transform: scale(1); opacity: 1; }
+            to { transform: scale(0.9); opacity: 0.5; }
+        }
+
+        .unmatched {
+            animation: shake 0.5s;
+        }
+        
+        @keyframes shake {
+            10%, 90% { transform: translateX(-6px); }
+            20%, 80% { transform: translateX(6px); }
+            30%, 50%, 70% { transform: translateX(-6px); }
+            40%, 60% { transform: translateX(6px); }
+        }
+
+        /* Улучшенные стили для очков */
+        #score {
+            font-size: 3.2em;
+            color: #2e7d32;
+            margin-top: 30px;
+            font-weight: 700;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Анимированная кнопка "Следующий уровень" */
+        #nextLevelBtn {
+            display: none;
+            margin-top: 40px;
+            padding: 18px 36px;
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #4caf50, #81c784);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.25);
+            transition: all 0.3s ease;
+            animation: pulse 2s infinite;
+        }
+
+        #nextLevelBtn:hover {
+            background: linear-gradient(45deg, #43a047, #66bb6a);
+            transform: translateY(-8px) scale(1.05);
+            box-shadow: 0 12px 24px rgba(0, 0, 0, 0.3);
+        }
+
+        /* Анимация "пульса" для кнопки */
+        @keyframes pulse {
+            0% {
+                transform: scale(1);
+            }
+            50% {
+                transform: scale(1.05);
+            }
+            100% {
+                transform: scale(1);
+            }
+        }
+
+        /* Улучшенное сообщение о завершении уровня */
+        #roundCompleteMessage {
+            position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%) scale(0.9);
+            background: linear-gradient(45deg, #ffc107, #ff9800);
+            color: white;
+            padding: 40px 80px;
+            border-radius: 30px;
+            font-size: 4em;
+            font-weight: bold;
+            box-shadow: 0 20px 40px rgba(0, 0, 0, 0.4);
+            z-index: 1000;
+            opacity: 0;
+            transition: opacity 0.5s ease-out, transform 0.5s ease-out;
+            pointer-events: none;
+            text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.2);
+            letter-spacing: 2px;
+        }
+
+        #roundCompleteMessage.show {
+            opacity: 1;
+            transform: translate(-50%, -50%) scale(1);
+        }
+    </style>
+</head>
+<body>
+    <button id="backButton">← Назад</button>
+    <h1>Игра "Найди пару" 🃏</h1>
+    <div id="game-info"></div>
+    <div id="game-board"></div>
+    <div id="score">Очки: 0</div>
+    <button id="nextLevelBtn">Следующий уровень</button>
+
+    <div id="roundCompleteMessage">Уровень завершен! 🎉</div>
+
+    <audio id="successSound" src="https://www.soundjay.com/buttons/sounds/button-2.mp3"></audio>
+    <audio id="errorSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+    <audio id="matchSound" src="https://www.soundjay.com/buttons/sounds/button-8.mp3"></audio>
+    <audio id="flipSound" src="https://www.soundjay.com/buttons/sounds/button-1.mp3"></audio>
+
+    <script>
+        const levels = [
+            {
+                name: "Животные",
+                items: [
+                    { type: "text", content: "ЗАЯЦ", pair: "заяц-img" },
+                    { type: "image", content: "картинки/orig (7).webp", pair: "заяц-img" },
+                    { type: "text", content: "СОБАКА", pair: "собака-img" },
+                    { type: "image", content: "картинки/8616f95dd9091eef536c71ea60421cc4.jpg", pair: "собака-img" },
+                    { type: "text", content: "КОШКА", pair: "кошка-img" },
+                    { type: "image", content: "картинки/35a68c6d8093fa704d1b72163a9dc941.jpg", pair: "кошка-img" },
+                    { type: "text", content: "ПТИЦА", pair: "птица-img" },
+                    { type: "image", content: "картинки/i (9).webp", pair: "птица-img" },
+                ]
+            },
+
+{
+                name: "Глаголы",
+                items: [
+                    { type: "text", content: "Бежать", pair: "бежать-img" },
+                    { type: "image", content: "глаголы/Бежать.jpg", pair: "бежать-img" },
+                    { type: "text", content: "Играть", pair: "играть-img" },
+                    { type: "image", content: "глаголы/Играть.jpg", pair: "играть-img" },
+                    { type: "text", content: "Петь", pair: "петь-img" },
+                    { type: "image", content: "глаголы/Петь.jpg", pair: "петь-img" },
+                    { type: "text", content: "Рисовать", pair: "рисовать-img" },
+                    { type: "image", content: "глаголы/Рисовать.jpg", pair: "рисовать-img" },
+                
+                ]
+            },
+
+                  {
+                name: "Природные явления",
+                items: [
+                    { type: "text", content: "Весна", pair: "весна-img" },
+                    { type: "image", content: "Природные явления/Весна.jpg", pair: "весна-img" },
+                    { type: "text", content: "Ветер", pair: "ветер-img" },
+                    { type: "image", content: "Природные явления/Ветер.jpg", pair: "ветер-img" },
+                    { type: "text", content: "Радуга", pair: "радуга-img" },
+                    { type: "image", content: "Природные явления/радуга.jpg", pair: "радуга-img" },
+                    { type: "text", content: "Молния", pair: "молния-img" },
+                    { type: "image", content: "Природные явления/Молния.jpg", pair: "молния-img" },
+                ]
+            },
+            {
+                name: "Одежда",
+                items: [
+                    { type: "text", content: "ШЛЯПА", pair: "шляпа-img" },
+                    { type: "image", content: "картинки/foni-papik-pro-ylrv-p-kartinki-shlyapa-dlya-detei-na-prozrachnom-3.png", pair: "шляпа-img" },
+                    { type: "text", content: "ПЛАТЬЕ", pair: "платье-img" },
+                    { type: "image", content: "картинки/i (10).webp", pair: "платье-img" },
+                    { type: "text", content: "ШОРТЫ", pair: "шорты-img" },
+                    { type: "image", content: "картинки/foni-papik-pro-2smi-p-kartinki-shorti-dlya-detei-na-prozrachnom-1.png", pair: "шорты-img" },
+                    { type: "text", content: "НОСКИ", pair: "носки-img" },
+                    { type: "image", content: "картинки/9f8dc0c45736cb33a0d2b9f4888976ee.jpg", pair: "носки-img" },
+                ]
+            },
+            {
+                name: "Еда",
+                items: [
+                    { type: "text", content: "Помидор", pair: "помидор-img" },
+                    { type: "image", content: "Еда/a9be18537dd4c55ee72022ad12895a61.jpg", pair: "помидор-img" },
+                    { type: "text", content: "Сыр", pair: "сыр-img" },
+                    { type: "image", content: "Еда/be441baff739153e14f682e0b57e9a11.jpg", pair: "сыр-img" },
+                    { type: "text", content: "Молоко", pair: "молоко-img" },
+                    { type: "image", content: "Еда/a40723882e46036c113c4645e5bb83d5.jpg", pair: "молоко-img" },
+                    { type: "text", content: "Кукуруза", pair: "кукуруза-img" },
+                    { type: "image", content: "Еда/5ccb47b611ce51f0c3a69dc46f52bd2b.jpg", pair: "кукуруза-img" },
+                
+                ]
+            },
+            {
+                name: "Мебель",
+                items: [
+                    { type: "text", content: "СТОЛ", pair: "стол-img" },
+                    { type: "image", content: "картинки/i (11).webp", pair: "стол-img" },
+                    { type: "text", content: "СТУЛ", pair: "стул-img" },
+                    { type: "image", content: "картинки/1636358374_44413.png", pair: "стул-img" },
+                    { type: "text", content: "КРОВАТЬ", pair: "кровать-img" },
+                    { type: "image", content: "картинки/foni-papik-pro-7lp3-p-kartinki-krovatka-na-prozrachnom-fone-1.png", pair: "кровать-img" },
+                    { type: "text", content: "ШКАФ", pair: "шкаф-img" },
+                    { type: "image", content: "картинки/images (2).jpeg", pair: "шкаф-img" },
+                ]
+            },
+             
+            {
+                name: "Профессии",
+                items: [
+                    { type: "text", content: "ПОЖАРНЫЙ", pair: "пожарный-img" },
+                    { type: "image", content: "картинки/87847-dettext_com-pozharnyi-kartinka-dlia-detei-na-prozrachnom-fone.jpg", pair: "пожарный-img" },
+                    { type: "text", content: "ВРАЧ", pair: "врач-img" },
+                    { type: "image", content: "картинки/37a7429d955720774b6529b9f5766a49.jpg", pair: "врач-img" },
+                    { type: "text", content: "ПОВАР", pair: "повар-img" },
+                    { type: "image", content: "картинки/foni-papik-pro-u1wy-p-kartinki-povarenok-dlya-detei-na-prozrachn-4.png", pair: "повар-img" },
+                    { type: "text", content: "УЧИТЕЛЬ", pair: "учитель-img" },
+                    { type: "image", content: "картинки/shkola-kartinka-05.jpg", pair: "учитель-img" },
+                ]
+            }
+        ];
+
+        let currentLevelIndex = 0;
+        let score = 0;
+        let openedCards = [];
+        let canClick = true;
+        let matchedPairs = 0;
+
+        const gameBoard = document.getElementById("game-board");
+        const nextLevelBtn = document.getElementById("nextLevelBtn");
+        const scoreDisplay = document.getElementById("score");
+        const gameInfo = document.getElementById("game-info");
+        const backButton = document.getElementById("backButton");
+        const roundCompleteMessage = document.getElementById("roundCompleteMessage");
+
+        const successSound = document.getElementById("successSound");
+        const errorSound = document.getElementById("errorSound");
+        const matchSound = document.getElementById("matchSound");
+        const flipSound = document.getElementById("flipSound");
+
+        function shuffle(array) {
+            for (let i = array.length - 1; i > 0; i--) {
+                const j = Math.floor(Math.random() * (i + 1));
+                [array[i], array[j]] = [array[j], array[i]];
+            }
+            return array;
+        }
+
+        function createCard(item) {
+            const card = document.createElement("div");
+            card.classList.add("card");
+            card.dataset.pair = item.pair;
+
+            const cardBack = document.createElement("div");
+            cardBack.classList.add("card-back");
+
+            const cardFront = document.createElement("div");
+            cardFront.classList.add("card-front");
+            if (item.type === "text") {
+                cardFront.textContent = item.content;
+            } else {
+                const img = document.createElement("img");
+                img.src = item.content;
+                cardFront.appendChild(img);
+            }
+            
+            card.appendChild(cardBack);
+            card.appendChild(cardFront);
+
+            card.addEventListener('click', () => flipCard(card));
+            return card;
+        }
+
+        function flipCard(card) {
+            if (!canClick || card.classList.contains('flipped')) {
+                return;
+            }
+
+            flipSound.play();
+            card.classList.add('flipped');
+            openedCards.push(card);
+
+            if (openedCards.length === 2) {
+                canClick = false;
+                setTimeout(checkMatch, 1000);
+            }
+        }
+
+        function checkMatch() {
+            const [card1, card2] = openedCards;
+            if (card1.dataset.pair === card2.dataset.pair) {
+                matchSound.play();
+                score += 20;
+                scoreDisplay.textContent = `Очки: ${score}`;
+                card1.classList.add('matched');
+                card2.classList.add('matched');
+                matchedPairs++;
+                checkLevelCompletion();
+            } else {
+                errorSound.play();
+                score -= 5;
+                scoreDisplay.textContent = `Очки: ${score}`;
+                card1.classList.add('unmatched');
+                card2.classList.add('unmatched');
+                setTimeout(() => {
+                    card1.classList.remove('flipped', 'unmatched');
+                    card2.classList.remove('flipped', 'unmatched');
+                }, 500);
+            }
+            openedCards = [];
+            setTimeout(() => {
+                canClick = true;
+            }, 500);
+        }
+
+        function showRoundCompleteMessage() {
+            roundCompleteMessage.classList.add('show');
+            setTimeout(() => {
+                roundCompleteMessage.classList.remove('show');
+            }, 2000);
+        }
+
+        function checkLevelCompletion() {
+            if (matchedPairs === levels[currentLevelIndex].items.length / 2) {
+                successSound.play();
+                showRoundCompleteMessage();
+                setTimeout(() => {
+                    nextLevelBtn.style.display = 'inline-block';
+                }, 1500);
+            }
+        }
+
+        function loadLevel(levelIndex) {
+            gameBoard.innerHTML = '';
+            openedCards = [];
+            matchedPairs = 0;
+            canClick = true;
+            nextLevelBtn.style.display = 'none';
+            roundCompleteMessage.classList.remove('show');
+
+            if (levelIndex >= levels.length) {
+                gameInfo.textContent = "";
+                gameBoard.innerHTML = `<h2>Поздравляем! Ты прошёл все уровни 🎉</h2>`;
+                return;
+            }
+
+            const currentLevel = levels[levelIndex];
+            gameInfo.textContent = `Уровень ${levelIndex + 1}: ${currentLevel.name}`;
+            
+            const shuffledItems = shuffle([...currentLevel.items]);
+            
+            shuffledItems.forEach(item => {
+                const card = createCard(item);
+                gameBoard.appendChild(card);
+            });
+        }
+
+        function nextLevel() {
+            currentLevelIndex++;
+            loadLevel(currentLevelIndex);
+        }
+
+        window.onload = () => {
+            loadLevel(currentLevelIndex);
+            nextLevelBtn.onclick = nextLevel;
+            backButton.onclick = () => location.href = 'index.html';
+        };
+    </script>
+</body>
+</html>

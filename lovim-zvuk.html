@@ -1,0 +1,582 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Игра "Ловим звук"</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap');
+
+        /* Базовые стили для всего тела страницы */
+        body {
+            font-family: 'Fredoka', 'Comic Sans MS', cursive, sans-serif;
+            text-align: center;
+            background: linear-gradient(135deg, #FFC0CB, #87CEFA); /* Мягкий розово-голубой градиент */
+            margin: 0;
+            padding: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+            color: #333; /* Более универсальный цвет текста */
+            overflow-y: auto;
+        }
+
+        /* Облака-анимация на фоне */
+        body::before, body::after {
+            content: '';
+            position: fixed;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            z-index: -1;
+            filter: blur(20px);
+            animation: moveClouds 20s linear infinite alternate;
+        }
+
+        body::before {
+            width: 200px;
+            height: 200px;
+            top: 10%;
+            left: -5%;
+        }
+
+        body::after {
+            width: 300px;
+            height: 300px;
+            top: 70%;
+            right: -10%;
+            animation-duration: 25s;
+        }
+
+        @keyframes moveClouds {
+            from { transform: translateX(0) scale(1); }
+            to { transform: translateX(100px) scale(1.1); }
+        }
+
+        /* Стили для кнопки "Назад" */
+        #backButton {
+            position: fixed;
+            top: 20px;
+            left: 20px;
+            padding: 12px 25px; /* Увеличил отступы */
+            font-size: 20px;
+            background: #fff;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            z-index: 100;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+            font-weight: bold;
+            color: #6a5acd; /* Лавандовый цвет */
+        }
+
+        #backButton:hover {
+            transform: scale(1.1);
+            box-shadow: 0 6px 12px rgba(0, 0, 0, 0.2);
+            background: #f0f8ff; /* Ещё светлее */
+        }
+
+        h1 {
+            color: #6a5acd; /* Лавандовый */
+            font-size: 4em;
+            margin-top: 100px;
+            margin-bottom: 20px;
+            text-shadow: 3px 3px 6px rgba(0, 0, 0, 0.15);
+            animation: bounceIn 1s ease-out;
+        }
+
+        @keyframes bounceIn {
+            0% { transform: scale(0.5); opacity: 0; }
+            60% { transform: scale(1.1); opacity: 1; }
+            100% { transform: scale(1); }
+        }
+
+        #level-info {
+            font-size: 2em;
+            color: #8A2BE2; /* Яркий фиолетовый */
+            font-weight: bold;
+            margin-bottom: 30px;
+            background: rgba(255, 255, 255, 0.8);
+            padding: 15px 30px;
+            border-radius: 15px;
+            box-shadow: 0 5px 10px rgba(0, 0, 0, 0.1);
+        }
+
+        #game-area {
+            position: relative;
+            width: 90vw;
+            height: 70vh;
+            max-width: 1000px;
+            background-color: rgba(255, 255, 255, 0.9);
+            border: 6px solid #87ceeb; /* Небесно-голубая рамка */
+            border-radius: 30px;
+            box-shadow: inset 0 0 15px rgba(0, 0, 0, 0.1), 0 15px 30px rgba(0, 0, 0, 0.25);
+            overflow: hidden;
+            cursor: url('data:image/svg+xml;utf8,<svg xmlns="http://www.w3.org/2000/svg" width="40" height="40" viewBox="0 0 40 40"><path d="M20 0v40m-20-20h40" stroke="%234a4a6a" stroke-width="3"/></svg>'), auto;
+        }
+
+        .moving-image {
+            position: absolute;
+            width: 150px; /* Увеличил размер картинок */
+            height: 150px;
+            border-radius: 25px;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.25);
+            transition: transform 0.3s cubic-bezier(0.25, 0.8, 0.25, 1), box-shadow 0.3s ease;
+            cursor: pointer;
+            object-fit: cover;
+            user-select: none;
+            border: 5px solid transparent;
+        }
+
+        .moving-image:hover {
+            transform: scale(1.15) rotate(5deg); /* Добавил небольшой поворот */
+            box-shadow: 0 12px 25px rgba(0,0,0,0.4);
+            z-index: 5;
+        }
+
+        .correct {
+            border: 5px solid #6cbe6c;
+            animation: pulse-green 0.5s ease-out;
+            box-shadow: 0 0 20px #6cbe6c;
+        }
+
+        .incorrect {
+            border: 5px solid #d9534f;
+            animation: shake 0.5s;
+            box-shadow: 0 0 20px #d9534f;
+        }
+        
+        @keyframes shake {
+            10%, 90% { transform: translateX(-5px) scale(1); }
+            20%, 80% { transform: translateX(5px) scale(1); }
+            30%, 50%, 70% { transform: translateX(-5px) scale(1); }
+            40%, 60% { transform: translateX(5px) scale(1); }
+        }
+
+        @keyframes pulse-green {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.2); }
+            100% { transform: scale(1); }
+        }
+
+        #score {
+            font-size: 3em;
+            color: #4a4a6a;
+            margin-top: 40px;
+            font-weight: bold;
+            text-shadow: 1px 1px 2px rgba(0,0,0,0.1);
+        }
+
+        #nextLevelBtn {
+            display: none;
+            margin-top: 50px;
+            padding: 18px 35px;
+            font-size: 24px;
+            font-weight: bold;
+            background: linear-gradient(45deg, #6cbe6c, #a7d7c5);
+            color: white;
+            border: none;
+            border-radius: 15px;
+            cursor: pointer;
+            box-shadow: 0 8px 15px rgba(0,0,0,0.25);
+            transition: all 0.3s ease;
+            letter-spacing: 1px;
+        }
+
+        #nextLevelBtn:hover {
+            background: linear-gradient(45deg, #a7d7c5, #6cbe6c);
+            transform: translateY(-5px) scale(1.03);
+            box-shadow: 0 10px 20px rgba(0,0,0,0.4);
+        }
+
+        .feedback {
+            position: absolute;
+            font-size: 100px;
+            font-weight: bold;
+            text-shadow: 4px 4px 8px rgba(0,0,0,0.5);
+            pointer-events: none;
+            z-index: 10;
+            animation: pop-out 1s forwards;
+            opacity: 0;
+            transform: scale(0);
+        }
+
+        .feedback.correct {
+            color: #4CAF50;
+        }
+
+        .feedback.incorrect {
+            color: #F44336;
+        }
+
+        @keyframes pop-out {
+            0% { opacity: 0; transform: scale(0); }
+            30% { opacity: 1; transform: scale(1.5); } /* Увеличил масштаб */
+            100% { opacity: 0; transform: scale(0.7); }
+        }
+
+        .moving-image:active {
+            transform: scale(0.9) rotate(0deg); /* Сжимается при нажатии */
+            box-shadow: 0 3px 6px rgba(0,0,0,0.2);
+        }
+    </style>
+</head>
+<body>
+    <button id="backButton">← Назад</button> 
+    <h1>Игра "Ловим звук"</h1>
+    <div id="level-info"></div>
+    <div id="game-area"></div>
+    <button id="nextLevelBtn">Следующий уровень</button>
+    <div id="score">Очки: 0</div>
+
+    <audio id="successSound" src="https://www.soundjay.com/buttons/sounds/button-3.mp3"></audio>
+    <audio id="errorSound" src="https://www.soundjay.com/buttons/sounds/button-10.mp3"></audio>
+
+    <script>
+        const levels = [
+            {
+                targetSound: "ш",
+                items: [
+                    { img: "картинки/шапка.png", word: "Шапка" },
+                    { img: "картинки/a2ce8ede8b157ddbc8b37b2a5a9d1524.jpg", word: "Мышь" },
+                    { img: "картинки/pngtree-executive-ballpoint-pen-for-business-writing-vector-png-image_12736101.png", word: "Ручка" },
+                    { img: "картинки/box-1295176_1280.webp", word: "Коробка" },
+                    { img: "картинки/i.webp", word: "Ножницы" },
+                    { img: "картинки/3986f6c87268c658c80f7587faedca14.png", word: "Звезда" },
+                    { img: "картинки/1619231945_338416.png", word: "Шары" },
+                    { img: "картинки/3378e15cbe8ef0639f4b2a2e926f2831.jpg", word: "Часы" }
+                ]
+            },
+            {
+                targetSound: "р",
+                items: [
+                    { img: "картинки/orig (3).webp", word: "Ракета" },
+                    { img: "картинки/32d2a6367163cd740bc13174cc5b6d15.png", word: "Рыба" },
+                    { img: "картинки/first-person-5318494_1280.webp", word: "Руки" },
+                    { img: "картинки/3378e15cbe8ef0639f4b2a2e926f2831.jpg", word: "Часы" },
+                    { img: "картинки/1d776fbb21f92be2bf440cb89fae720c.jpg", word: "Краб" },
+                    { img: "картинки/orig (4).webp", word: "Бабочка" },
+                    { img: "картинки/i (4).webp", word: "Мяч" }
+                ]
+            },
+            {
+                targetSound: "л",
+                items: [
+                    { img: "картинки/lamp-3338289_1280.webp", word: "Лампа" },
+                    { img: "картинки/orig (4).webp", word: "Бабочка" },
+                    { img: "картинки/519-5194482_maple-leaf-clipart-tree-leaf-silhouette-png-transparent.png", word: "Лист" },
+                    { img: "картинки/istockphoto-165694888-170667a.jpg", word: "Ложка" },
+                    { img: "картинки/3378e15cbe8ef0639f4b2a2e926f2831.jpg", word: "Часы" },
+                    { img: "картинки/92e16f49d775c3c25aafc9224e930a5e.jpg", word: "Лиса" },
+                    { img: "картинки/i.webp", word: "Корова" },
+                    { img: "картинки/3077ba493c8ad81092590ea95ffe188d.jpg", word: "Солнце" }
+                ]
+            },
+            {
+                targetSound: "ж",
+                items: [
+                    { img: "картинки/da123636f2761526ab9b3996c8b581d6.jpg", word: "Жираф" },
+                    { img: "картинки/images.png", word: "Ножницы" },
+                    { img: "картинки/orig (4).webp", word: "Бабочка" },
+                    { img: "картинки/1d776fbb21f92be2bf440cb89fae720c.jpg", word: "Краб" },
+                    { img: "картинки/orig (6).webp", word: "Ёжик" },
+                    { img: "картинки/chocolate-4505331_1280.webp", word: "Шоколад" },
+                    { img: "картинки/orig (5).webp", word: "Стрекоза" }
+                ]
+            },
+            {
+                targetSound: "з",
+                items: [
+                    { img: "картинки/1619785497_118842.png", word: "Зонт" },
+                    { img: "картинки/orig (7).webp", word: "Заяц" },
+                    { img: "картинки/cartoon-funny-tooth.jpg", word: "Зуб" },
+                    { img: "картинки/chocolate-4505331_1280.webp", word: "Шоколад" },
+                    { img: "картинки/b31424f490d8453f2af4673d05344364.jpg", word: "Замок" },
+                    { img: "картинки/92e16f49d775c3c25aafc9224e930a5e.jpg", word: "Лиса" },
+                    { img: "картинки/3986f6c87268c658c80f7587faedca14.png", word: "Звезда" },
+                    { img: "картинки/a-cute-elephant-cartoon-smiling-vector.jpg", word: "Слон" },
+                    { img: "картинки/i (4).webp", word: "Мяч" },
+                ]
+            },
+            {
+                targetSound: "к",
+                items: [
+                    { img: "картинки/35a68c6d8093fa704d1b72163a9dc941.jpg", word: "Кот" },
+                    { img: "картинки/i (8).webp", word: "Книга" },
+                    { img: "картинки/a-cute-elephant-cartoon-smiling-vector.jpg", word: "Слон" },
+                    { img: "картинки/kartoshka.webp", word: "Картошка" },
+                    { img: "картинки/3986f6c87268c658c80f7587faedca14.png", word: "Звезда" },
+                    { img: "картинки/minimalist-key-cartoon-drawing-7b3wgvouhruor2ll.jpg", word: "Ключ" },
+                    { img: "картинки/1676418831_gas-kvas-com-p-tapochki-detskii-risunok-32.jpg", word: "Тапок" }
+                ]
+            },
+            {
+                targetSound: "г",
+                items: [
+                    { img: "картинки/orig (9).webp", word: "Гриб" },
+                    { img: "картинки/35a68c6d8093fa704d1b72163a9dc941.jpg", word: "Кот" },
+                    { img: "картинки/orig (10).webp", word: "Голубь" },
+                    { img: "картинки/16b89fb3564113e9f4b058164696e545.jpg", word: "Гусь" },
+                    { img: "картинки/1619785497_118842.png", word: "Зонт" },
+                    { img: "картинки/ecf95c3eae6ffe3977f5009ee02410cc.jpg", word: "Гитара" },
+                    { img: "картинки/1698755223_klev-club-p-kartinki-noga-cheloveka-7.png", word: "Нога" }
+                ]
+            },
+            {
+                targetSound: "д",
+                items: [
+                    { img: "картинки/b2baa118abec996690f87e292fa4ebde.jpg", word: "Дом" },
+                    { img: "картинки/minimalist-key-cartoon-drawing-7b3wgvouhruor2ll.jpg", word: "Ключ" },
+                    { img: "картинки/gas-kvas-com-p-dozhd-na-prozrachnom-fone-dlya-detei-1.jpg", word: "Дождь" },
+                    { img: "картинки/chocolate-4505331_1280.webp", word: "Шоколад" },
+                    { img: "картинки/ecf95c3eae6ffe3977f5009ee02410cc.jpg", word: "Гитара" },
+                    { img: "картинки/images.jpeg", word: "Диван" },
+                    { img: "картинки/327ded8beee8cc7b5782aba20012c9c5.png", word: "Дерево" },
+                    { img: "картинки/podarochnaia_korobka_risunok_11.webp", word: "Подарок" }
+                ]
+            },
+            {
+                targetSound: "в",
+                items: [
+                    { img: "картинки/vazi.jpg", word: "Ваза" },
+                    { img: "картинки/35a68c6d8093fa704d1b72163a9dc941.jpg", word: "Кот" },
+                    { img: "картинки/lemon-2740454_1280.webp", word: "Лимон" },
+                    { img: "картинки/i (9).webp", word: "Ворона" },
+                    { img: "картинки/da123636f2761526ab9b3996c8b581d6.jpg", word: "Жираф" },
+                    { img: "картинки/1673494422_gas-kvas-com-p-detskii-risunok-verblyud-4.jpg", word: "Верблюд" },
+                    { img: "картинки/1f4e240cec10bd569b251483eeffaa14.jpg", word: "Вода" },
+                    { img: "картинки/lamp-3338289_1280.webp", word: "Лампа" },
+                    { img: "картинки/1673571556_gas-kvas-com-p-risunok-detskii-trava-4.png", word: "Трава" }
+                ]
+            },
+            {
+                targetSound: "ф",
+                items: [
+                    { img: "картинки/1700146154_pictures-pibig-info-p-fonarik-risunok-dlya-detei-vkontakte-3.jpg", word: "Фонарь" },
+                    { img: "картинки/images (1).jpeg", word: "Фрукты" },
+                    { img: "картинки/327ded8beee8cc7b5782aba20012c9c5.png", word: "Дерево" },
+                    { img: "картинки/podarochnaia_korobka_risunok_11.webp", word: "Подарок" },
+                    { img: "картинки/da123636f2761526ab9b3996c8b581d6.jpg", word: "Жираф" },
+                ]
+            }
+        ];
+        let currentLevelIndex = 0;
+        let score = 0;
+        const activeImages = [];
+        const gameArea = document.getElementById("game-area");
+        const nextLevelBtn = document.getElementById("nextLevelBtn");
+        const scoreDisplay = document.getElementById("score");
+        const levelInfo = document.getElementById("level-info");
+        const backButton = document.getElementById("backButton"); 
+        const successSound = document.getElementById("successSound");
+        const errorSound = document.getElementById("errorSound");
+        let animationFrameId;
+
+        function showFeedback(element, isCorrect) {
+            const feedbackEl = document.createElement("div");
+            feedbackEl.classList.add("feedback");
+            feedbackEl.textContent = isCorrect ? "✅" : "❌";
+            
+            const elRect = element.getBoundingClientRect();
+            const gameAreaRect = gameArea.getBoundingClientRect();
+
+            feedbackEl.style.left = `${elRect.left - gameAreaRect.left + (element.offsetWidth / 2) - 50}px`;
+            feedbackEl.style.top = `${elRect.top - gameAreaRect.top + (element.offsetHeight / 2) - 50}px`;
+            
+            gameArea.appendChild(feedbackEl);
+            setTimeout(() => {
+                feedbackEl.remove();
+            }, 1000);
+        }
+
+        function loadLevel(levelIndex) {
+            if (animationFrameId) {
+                cancelAnimationFrame(animationFrameId);
+            }
+            gameArea.innerHTML = "";
+            activeImages.length = 0;
+
+            const currentLevelData = levels[levelIndex];
+            levelInfo.innerHTML = `Найди предметы со звуком "<b>${currentLevelData.targetSound.toUpperCase()}</b>"`;
+            nextLevelBtn.style.display = "none";
+
+            const imageWidth = 150; 
+            const imageHeight = 150;
+
+            currentLevelData.items.forEach(item => {
+                const imgEl = document.createElement("img");
+                imgEl.src = item.img;
+                imgEl.alt = item.word;
+                imgEl.classList.add("moving-image");
+
+                const startX = Math.random() * (gameArea.clientWidth - imageWidth);
+                const startY = Math.random() * (gameArea.clientHeight - imageHeight);
+                
+                imgEl.style.left = `${startX}px`;
+                imgEl.style.top = `${startY}px`;
+
+                const speed = 1.2 + Math.random() * 1.5;
+                const angle = Math.random() * Math.PI * 2;
+                const velocityX = Math.cos(angle) * speed;
+                const velocityY = Math.sin(angle) * speed;
+
+                imgEl.onclick = () => checkAnswer(item.word, currentLevelData.targetSound, imgEl);
+                gameArea.appendChild(imgEl);
+
+                activeImages.push({
+                    element: imgEl,
+                    x: startX,
+                    y: startY,
+                    width: imageWidth,
+                    height: imageHeight,
+                    radius: imageWidth / 2,
+                    velocityX: velocityX,
+                    velocityY: velocityY,
+                    wordData: item
+                });
+            });
+
+            startGameAnimation();
+        }
+
+        function checkAnswer(word, targetSound, clickedImageElement) {
+            if (word.toLowerCase().includes(targetSound)) {
+                successSound.play();
+                score += 10;
+                scoreDisplay.textContent = "Очки: " + score;
+                clickedImageElement.classList.add("correct");
+                showFeedback(clickedImageElement, true);
+                
+                setTimeout(() => {
+                    const index = activeImages.findIndex(item => item.element === clickedImageElement);
+                    if (index > -1) {
+                        activeImages.splice(index, 1);
+                        clickedImageElement.remove();
+                    }
+                    checkIfLevelCompleted();
+                }, 500);
+
+            } else {
+                errorSound.play();
+                score -= 5;
+                scoreDisplay.textContent = "Очки: " + score;
+                clickedImageElement.classList.add("incorrect");
+                showFeedback(clickedImageElement, false);
+                setTimeout(() => {
+                    clickedImageElement.classList.remove("incorrect");
+                }, 500);
+            }
+        }
+
+        function checkIfLevelCompleted() {
+            const currentLevelData = levels[currentLevelIndex];
+            const correctWordsInLevel = currentLevelData.items.filter(item => 
+                item.word.toLowerCase().includes(currentLevelData.targetSound)
+            );
+            
+            const remainingCorrectWords = activeImages.filter(item => 
+                item.wordData.word.toLowerCase().includes(currentLevelData.targetSound)
+            ).length;
+
+            if (remainingCorrectWords === 0 && correctWordsInLevel.length > 0) {
+                nextLevelBtn.style.display = "inline-block";
+                cancelAnimationFrame(animationFrameId);
+            }
+        }
+
+        function nextLevel() {
+            currentLevelIndex++;
+            if (currentLevelIndex < levels.length) {
+                loadLevel(currentLevelIndex);
+            } else {
+                gameArea.innerHTML = "<h2>Молодец! Ты прошёл все уровни 🎉</h2>";
+                levelInfo.innerHTML = "";
+                nextLevelBtn.style.display = "none";
+                cancelAnimationFrame(animationFrameId);
+            }
+        }
+
+        function checkCollisions() {
+            for (let i = 0; i < activeImages.length; i++) {
+                for (let j = i + 1; j < activeImages.length; j++) {
+                    const img1 = activeImages[i];
+                    const img2 = activeImages[j];
+
+                    const centerX1 = img1.x + img1.width / 2;
+                    const centerY1 = img1.y + img1.height / 2;
+                    const centerX2 = img2.x + img2.width / 2;
+                    const centerY2 = img2.y + img2.height / 2;
+                    
+                    const dx = centerX2 - centerX1;
+                    const dy = centerY2 - centerY1;
+                    const distance = Math.sqrt(dx * dx + dy * dy);
+                    
+                    const minDistance = img1.radius + img2.radius;
+
+                    if (distance < minDistance) {
+                        const overlap = minDistance - distance;
+                        const angle = Math.atan2(dy, dx);
+                        const sinAngle = Math.sin(angle);
+                        const cosAngle = Math.cos(angle);
+
+                        img1.x -= overlap / 2 * cosAngle;
+                        img1.y -= overlap / 2 * sinAngle;
+                        img2.x += overlap / 2 * cosAngle;
+                        img2.y += overlap / 2 * sinAngle;
+
+                        const v1n = img1.velocityX * cosAngle + img1.velocityY * sinAngle;
+                        const v1t = img1.velocityY * cosAngle - img1.velocityX * sinAngle;
+                        const v2n = img2.velocityX * cosAngle + img2.velocityY * sinAngle;
+                        const v2t = img2.velocityY * cosAngle - img2.velocityX * sinAngle;
+
+                        const tempVn = v1n;
+                        img1.velocityX = v2n * cosAngle - v1t * sinAngle;
+                        img1.velocityY = v2n * sinAngle + v1t * cosAngle;
+                        img2.velocityX = tempVn * cosAngle - v2t * sinAngle;
+                        img2.velocityY = tempVn * sinAngle + v2t * cosAngle;
+
+                        img1.x += img1.velocityX * 0.1;
+                        img1.y += img1.velocityY * 0.1;
+                        img2.x += img2.velocityX * 0.1;
+                        img2.y += img2.velocityY * 0.1;
+                    }
+                }
+            }
+        }
+
+        function updateImagesPosition() {
+            activeImages.forEach(item => {
+                const el = item.element;
+                
+                item.x += item.velocityX;
+                item.y += item.velocityY;
+
+                if (item.x <= 0 || item.x + item.width >= gameArea.clientWidth) {
+                    item.velocityX *= -1;
+                    item.x = Math.max(0, Math.min(item.x, gameArea.clientWidth - item.width));
+                }
+                if (item.y <= 0 || item.y + item.height >= gameArea.clientHeight) {
+                    item.velocityY *= -1;
+                    item.y = Math.max(0, Math.min(item.y, gameArea.clientHeight - item.height));
+                }
+
+                el.style.left = `${item.x}px`;
+                el.style.top = `${item.y}px`;
+            });
+
+            checkCollisions();
+            animationFrameId = requestAnimationFrame(updateImagesPosition);
+        }
+
+        function startGameAnimation() {
+            animationFrameId = requestAnimationFrame(updateImagesPosition);
+        }
+
+        window.onload = () => {
+            loadLevel(currentLevelIndex);
+            nextLevelBtn.onclick = nextLevel;
+            backButton.onclick = () => location.href = 'index.html'; 
+        };
+    </script>
+</body>
+</html>

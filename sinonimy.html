@@ -1,0 +1,351 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>ПОДБЕРИ СИНОНИМЫ / АНТОНИМЫ — Игра</title>
+<style>
+  :root{
+    --bg1:#c9e4ff;--bg2:#fbc2eb;--bg3:#fad0c4;
+    --card:#ffffff;--text:#2b2b2b;--accent:#6a5acd;--accent2:#ff6f91;--ok:#2ecc71;--bad:#ff4e88;
+  }
+  *{box-sizing:border-box}
+  body{
+    margin:0; font-family:"Nunito", "Segoe UI", system-ui, -apple-system, Arial, sans-serif; color:var(--text);
+    min-height:100vh; display:flex; align-items:center; justify-content:center; padding:32px;
+    background: linear-gradient(135deg,var(--bg1),var(--bg2),var(--bg3));
+    background-size:400% 400%; animation: grad 18s ease infinite;
+  }
+  @keyframes grad{0%{background-position:0% 50%}50%{background-position:100% 50%}100%{background-position:0% 50%}}
+  .app{ width: min(1100px, 100%); }
+  header{ text-align:center; margin-bottom:18px; }
+  h1{ font-size: clamp(24px, 3.6vw, 42px); margin: 0 0 6px; color:#4b0082; text-shadow:0 8px 30px rgba(0,0,0,.15); }
+  .subtitle{opacity:.85}
+
+  .card{ background:var(--card); border-radius:22px; box-shadow:0 20px 60px rgba(0,0,0,.15);
+         padding:22px; overflow:hidden; position:relative; animation: pop .6s ease both }
+  @keyframes pop{ from{transform:translateY(16px) scale(.98); opacity:0} to{transform:none; opacity:1} }
+
+  .nav{ display:flex; gap:10px; flex-wrap:wrap; margin-bottom:14px; }
+  .nav button{ flex:1 1 160px; border:0; padding:12px 16px; border-radius:14px; font-weight:700; cursor:pointer;
+               background:rgba(255,255,255,.6); color:#3b3b3b; box-shadow:0 8px 20px rgba(0,0,0,.08);
+               transition:.25s transform, .25s background }
+  .nav button:hover{ transform: translateY(-2px) }
+  .nav button.active{ background:linear-gradient(135deg, var(--accent), var(--accent2)); color:#fff }
+
+  .panel{ display:none }
+  .panel.active{ display:block; animation: fade .4s ease }
+  @keyframes fade{ from{opacity:0; transform: translateY(8px)} to{opacity:1; transform:none} }
+
+  .row{ display:grid; grid-template-columns: 1fr auto 1.2fr; gap:12px; align-items:center; padding:8px 10px; border-radius:12px; }
+  .row:nth-child(odd){ background: rgba(106,90,205,.06) }
+  .row .arrow{ opacity:.6 }
+
+  input[type="text"], select{ width:100%; padding:12px 14px; border:2px solid #e6e6f0; border-radius:12px; font-size:16px; transition:border .2s, box-shadow .2s }
+  input[type="text"]:focus, select:focus{ outline:none; border-color: var(--accent); box-shadow:0 0 0 6px rgba(106,90,205,.12) }
+
+  .choices{ display:grid; gap:10px }
+  .choice{ padding:12px 14px; border-radius:12px; border:2px solid #eae7ff; cursor:pointer; transition:.2s transform, .2s border, .2s box-shadow }
+  .choice:hover{ transform: translateY(-2px); box-shadow:0 8px 20px rgba(0,0,0,.08) }
+  .choice.correct{ border-color: var(--ok); background: rgba(46,204,113,.1) }
+  .choice.wrong{ border-color: var(--bad); background: rgba(255,78,136,.08) }
+
+  .controls{ display:flex; gap:10px; flex-wrap:wrap; margin-top:16px }
+  .btn{ border:0; padding:12px 18px; border-radius:12px; font-weight:800; cursor:pointer; color:#fff; background:linear-gradient(135deg, var(--accent), var(--accent2));
+        box-shadow:0 10px 24px rgba(0,0,0,.18); transition:.25s transform, .25s filter }
+  .btn:hover{ transform: translateY(-2px) }
+  .btn.ghost{ background:#fff; color:#333; border:2px solid #e6e6f0 }
+  .pill{ display:inline-flex; align-items:center; gap:8px; background:#fff; border-radius:999px; padding:8px 14px; font-weight:700; box-shadow:0 6px 16px rgba(0,0,0,.08) }
+  .pill .dot{ width:10px; height:10px; border-radius:50%; background:var(--accent2) }
+
+  .feedback{ margin-top:12px; font-weight:800 }
+  .ok{ color: var(--ok) }
+  .bad{ color: var(--bad) }
+
+  .grid2{ display:grid; grid-template-columns: 1fr 1fr; gap:16px }
+
+  .progress{
+    height:10px; background:rgba(255,255,255,.7); border-radius:999px; overflow:hidden; margin: 14px 0 6px;
+  }
+  .progress > i{ display:block; height:100%; width:0%; background: linear-gradient(90deg, var(--accent), var(--accent2)); transition: width .4s ease }
+
+  /* Matching with arrows */
+  .match-wrap{ position:relative; display:grid; grid-template-columns: 1fr 1fr; gap:60px; padding:20px 10px; }
+  .col{ display:flex; flex-direction:column; gap:10px }
+  .node{ position:relative; padding:12px 14px; background:#fff; border:2px solid #e6e6f0; border-radius:12px; cursor:pointer; user-select:none; transition:.2s box-shadow, .2s transform }
+  .node:hover{ transform: translateY(-2px); box-shadow: 0 8px 20px rgba(0,0,0,.08) }
+  .node.active{ border-color: var(--accent) }
+  svg.lines{ position:absolute; top:0; left:0; width:100%; height:100%; pointer-events:none }
+  .legend{ opacity:.8; font-size:14px; margin-bottom:6px }
+
+  footer{ text-align:center; opacity:.7; margin-top:12px }
+</style>
+</head>
+<body>
+  <div class="app">
+    <header>
+      <h1>🌈 ПОДБЕРИ СИНОНИМЫ и АНТОНИМЫ</h1>
+      <div class="subtitle">Интерактивные задания с мгновенной проверкой</div>
+      <div class="progress" aria-label="Прогресс"><i id="progressBar"></i></div>
+      <div class="pill">Очки: <span id="score">0</span> <span class="dot"></span> Задание: <span id="step">1</span>/5</div>
+    </header>
+
+    <div class="nav">
+      <button class="active" data-target="p1">1) Подбери синонимы</button>
+      <button data-target="p2">2) Выбери правильный синоним</button>
+      <button data-target="p3">3) Найди антоним</button>
+      <button data-target="p4">4) Найди противоположное</button>
+      <button data-target="p5">5) Соедини противоположные</button>
+    </div>
+
+    <section class="card panel active" id="p1" aria-label="Подбери синонимы">
+      <h2>1) Найди к слову подходящее «дружеское слово» (синоним).</h2>
+      <div id="p1Rows"></div>
+      <div class="controls">
+        <button class="btn" id="p1Check">Проверить</button>
+        <button class="btn ghost" id="p1Reset">Очистить</button>
+      </div>
+      <div class="feedback" id="p1Fb"></div>
+    </section>
+
+    <section class="card panel" id="p2" aria-label="Выбери правильный синоним">
+      <h2>2) Выбери правильный синоним</h2>
+      <div id="p2Qs" class="grid2"></div>
+      <div class="controls"><button class="btn" id="p2Check">Проверить</button></div>
+      <div class="feedback" id="p2Fb"></div>
+    </section>
+
+    <section class="card panel" id="p3" aria-label="Найди антоним">
+      <h2>3) Найди к слову подходящий антоним</h2>
+      <div id="p3Rows"></div>
+      <div class="controls">
+        <button class="btn" id="p3Check">Проверить</button>
+        <button class="btn ghost" id="p3Reset">Очистить</button>
+      </div>
+      <div class="feedback" id="p3Fb"></div>
+    </section>
+
+    <section class="card panel" id="p4" aria-label="Найди противоположное слово (варианты)">
+      <h2>4) Найди противоположное слово</h2>
+      <div id="p4Qs" class="grid2"></div>
+      <div class="controls"><button class="btn" id="p4Check">Проверить</button></div>
+      <div class="feedback" id="p4Fb"></div>
+    </section>
+
+    <section class="card panel" id="p5" aria-label="Соедини противоположные значения">
+      <h2>5) Игра: соедини слова с противоположными значениями</h2>
+      <div class="legend">Нажми слово слева, затем подходящую пару справа — появится стрелка. Ещё раз по стрелке — можно удалить.</div>
+      <div class="match-wrap" id="matchWrap">
+        <svg class="lines" id="lines"></svg>
+        <div class="col" id="leftCol"></div>
+        <div class="col" id="rightCol"></div>
+      </div>
+      <div class="controls">
+        <button class="btn" id="p5Check">Проверить</button>
+        <button class="btn ghost" id="p5Reset">Сбросить линии</button>
+      </div>
+      <div class="feedback" id="p5Fb"></div>
+    </section>
+
+    <div class="controls" style="justify-content:center; margin-top:14px">
+      <button class="btn ghost" id="prev">← Назад</button>
+      <button class="btn" id="next">Дальше →</button>
+    </div>
+
+    <footer>Совет: выполняй задания по порядку, чтобы набрать максимум очков ✨</footer>
+  </div>
+
+<script>
+  const $ = (sel, root=document)=> root.querySelector(sel);
+  const $$ = (sel, root=document)=> Array.from(root.querySelectorAll(sel));
+  const scoreEl = $('#score');
+  const stepEl = $('#step');
+  const progressBar = $('#progressBar');
+  let score = 0;
+  let step = 1;
+  const stepsTotal = 5;
+  const updateProgress = ()=>{
+    stepEl.textContent = step;
+    progressBar.style.width = (step/stepsTotal*100) + '%';
+    scoreEl.textContent = score;
+  }
+  updateProgress();
+
+  // Навигация
+  $$('.nav button').forEach(btn=>{
+    btn.addEventListener('click',()=>{ showPanel(btn.dataset.target); });
+  });
+  function showPanel(id){
+    $$('.nav button').forEach(b=>b.classList.toggle('active', b.dataset.target===id));
+    $$('.panel').forEach(p=>p.classList.toggle('active', p.id===id));
+    step = ['p1','p2','p3','p4','p5'].indexOf(id)+1; updateProgress();
+  }
+  $('#prev').onclick=()=>{ const idx=Math.max(0, ['p1','p2','p3','p4','p5'].indexOf($('.panel.active').id)-1); showPanel(['p1','p2','p3','p4','p5'][idx]); };
+  $('#next').onclick=()=>{ const idx=Math.min(4, ['p1','p2','p3','p4','p5'].indexOf($('.panel.active').id)+1); showPanel(['p1','p2','p3','p4','p5'][idx]); };
+
+  // ДАННЫЕ
+  const dataP1 = [
+    ['Красивый','прекрасный'],['Радостный','счастливый'],['Быстрый','скорый'],['Смелый','храбрый'],['Добрый','ласковый'],
+    ['Тихий','спокойный'],['Большой','огромный'],['Умный','сообразительный'],['Весёлый','жизнерадостный'],['Холодный','морозный']
+  ];
+  const dataP2 = [
+    ['Красивый',['огромный','прекрасный','холодный'],'прекрасный'],
+    ['Радостный',['печальный','счастливый','грустный'],'счастливый'],
+    ['Быстрый',['скорый','тяжёлый','ленивый'],'скорый'],
+    ['Смелый',['храбрый','робкий','тихий'],'храбрый'],
+    ['Добрый',['сердитый','ласковый','злой'],'ласковый'],
+    ['Тихий',['шумный','спокойный','громкий'],'спокойный'],
+    ['Большой',['маленький','огромный','крошечный'],'огромный'],
+    ['Умный',['глупый','сообразительный','пустой'],'сообразительный'],
+    ['Весёлый',['жизнерадостный','скучный','мрачный'],'жизнерадостный'],
+    ['Холодный',['тёплый','морозный','жаркий'],'морозный']
+  ];
+  const dataP3 = [
+    ['Добрый','злой'],['Большой','маленький'],['Тёплый','холодный'],['Быстрый','медленный'],['Сильный','слабый'],
+    ['Светлый','тёмный'],['Весёлый','грустный'],['Высокий','низкий'],['Далёкий','близкий'],['Чистый','грязный']
+  ];
+  const dataP4 = [
+    ['Большой',['маленький','высокий','длинный'],'маленький'],
+    ['Добрый',['ласковый','злой','хороший'],'злой'],
+    ['Весёлый',['радостный','грустный','звонкий'],'грустный'],
+    ['Тёплый',['морозный','горячий','жаркий'],'морозный'],
+    ['Быстрый',['скорый','медленный','лёгкий'],'медленный'],
+    ['Далёкий',['близкий','высокий','широкий'],'близкий'],
+    ['Тихий',['шумный','спокойный','нежный'],'шумный'],
+    ['Смелый',['храбрый','трусливый','добрый'],'трусливый'],
+    ['День',['ночь','вечер','утро'],'ночь'],
+    ['Сильный',['слабый','крепкий','могучий'],'слабый']
+  ];
+  // Для p5 matching
+  const leftP5 = ['Добрый','Большой','Тёплый','Быстрый','Сильный','Светлый','Весёлый','Высокий','Далёкий','Чистый'];
+  const rightP5 = ['низкий','грязный','злой','холодный','слабый','грустный','медленный','близкий','маленький','тёмный'];
+  const correctMapP5 = {
+    'Добрый':'злой', 'Большой':'маленький', 'Тёплый':'холодный', 'Быстрый':'медленный', 'Сильный':'слабый',
+    'Светлый':'тёмный', 'Весёлый':'грустный', 'Высокий':'низкий', 'Далёкий':'близкий', 'Чистый':'грязный'
+  };
+
+  // P1 render
+  const p1Rows = $('#p1Rows');
+  dataP1.forEach(([w, ans])=>{
+    const row = document.createElement('div'); row.className='row';
+    row.innerHTML = `<div><strong>${w}</strong></div><div class="arrow">→</div><div><input type="text" placeholder="впиши синоним" data-right="${ans}"></div>`;
+    p1Rows.appendChild(row);
+  });
+  $('#p1Check').onclick=()=>{
+    let ok=0; $$('#p1Rows input').forEach(inp=>{ const right=inp.dataset.right.trim().toLowerCase(); const val=inp.value.trim().toLowerCase();
+      if(val===right){ inp.style.borderColor='var(--ok)'; ok++; } else { inp.style.borderColor='var(--bad)'; }
+    });
+    $('#p1Fb').innerHTML = ok===dataP1.length ? `<span class="ok">Отлично! Все ${ok}/${dataP1.length} правильно.</span>` : `Правильно: <b>${ok}</b> из <b>${dataP1.length}</b>.`;
+    score += ok; updateProgress();
+  }
+  $('#p1Reset').onclick=()=>{ $$('#p1Rows input').forEach(i=>{i.value=''; i.style.borderColor='#e6e6f0'}); $('#p1Fb').textContent=''; }
+
+  // P2 render
+  const p2Qs = $('#p2Qs');
+  dataP2.forEach(([q, opts, right], qi)=>{
+    const box = document.createElement('div'); box.className='card'; box.style.padding='14px';
+    const choices = opts.map((o, i)=>`<label class="choice"><input style="margin-right:8px" type="radio" name="p2_${qi}" value="${o}"> ${o}</label>`).join('');
+    box.innerHTML = `<div style="font-weight:800; margin-bottom:8px">${q}</div><div class="choices">${choices}</div>`;
+    box.dataset.right = right; p2Qs.appendChild(box);
+  });
+  $('#p2Check').onclick=()=>{
+    let ok=0; $$('#p2Qs .card').forEach(card=>{
+      const right = card.dataset.right; const chosen = card.querySelector('input[type=radio]:checked');
+      $$('.choice', card).forEach(c=>c.classList.remove('correct','wrong'));
+      if(chosen){ const label = chosen.closest('.choice'); if(chosen.value===right){ label.classList.add('correct'); ok++; } else { label.classList.add('wrong'); }}
+    });
+    $('#p2Fb').innerHTML = ok===dataP2.length ? `<span class="ok">Супер! ${ok}/${dataP2.length} верно.</span>` : `Правильно: <b>${ok}</b> из <b>${dataP2.length}</b>.`;
+    score += ok; updateProgress();
+  }
+
+  // P3 render
+  const p3Rows = $('#p3Rows');
+  dataP3.forEach(([w, ans])=>{
+    const row = document.createElement('div'); row.className='row';
+    row.innerHTML = `<div><strong>${w}</strong></div><div class="arrow">→</div><div><input type="text" placeholder="впиши антоним" data-right="${ans}"></div>`;
+    p3Rows.appendChild(row);
+  });
+  $('#p3Check').onclick=()=>{
+    let ok=0; $$('#p3Rows input').forEach(inp=>{ const right=inp.dataset.right.trim().toLowerCase(); const val=inp.value.trim().toLowerCase();
+      if(val===right){ inp.style.borderColor='var(--ok)'; ok++; } else { inp.style.borderColor='var(--bad)'; }
+    });
+    $('#p3Fb').innerHTML = ok===dataP3.length ? `<span class="ok">Отлично! Все ${ok}/${dataP3.length} правильно.</span>` : `Правильно: <b>${ok}</b> из <b>${dataP3.length}</b>.`;
+    score += ok; updateProgress();
+  }
+  $('#p3Reset').onclick=()=>{ $$('#p3Rows input').forEach(i=>{i.value=''; i.style.borderColor='#e6e6f0'}); $('#p3Fb').textContent=''; }
+
+  // P4 render
+  const p4Qs = $('#p4Qs');
+  dataP4.forEach(([q, opts, right], qi)=>{
+    const box = document.createElement('div'); box.className='card'; box.style.padding='14px';
+    const choices = opts.map(o=>`<label class="choice"><input style="margin-right:8px" type="radio" name="p4_${qi}" value="${o}"> ${o}</label>`).join('');
+    box.innerHTML = `<div style="font-weight:800; margin-bottom:8px">${q}</div><div class="choices">${choices}</div>`;
+    box.dataset.right = right; p4Qs.appendChild(box);
+  });
+  $('#p4Check').onclick=()=>{
+    let ok=0; $$('#p4Qs .card').forEach(card=>{
+      const right = card.dataset.right; const chosen = card.querySelector('input[type=radio]:checked');
+      $$('.choice', card).forEach(c=>c.classList.remove('correct','wrong'));
+      if(chosen){ const label = chosen.closest('.choice'); if(chosen.value===right){ label.classList.add('correct'); ok++; } else { label.classList.add('wrong'); }}
+    });
+    $('#p4Fb').innerHTML = ok===dataP4.length ? `<span class="ok">Блестяще! ${ok}/${dataP4.length} верно.</span>` : `Правильно: <b>${ok}</b> из <b>${dataP4.length}</b>.`;
+    score += ok; updateProgress();
+  }
+
+  // P5 matching with arrows
+  const leftCol = $('#leftCol'); const rightCol = $('#rightCol'); const svg = $('#lines');
+  const leftNodes = []; const rightNodes = []; const connections = new Map(); // key: leftIndex -> rightIndex
+  function renderP5(){
+    leftCol.innerHTML=''; rightCol.innerHTML=''; svg.innerHTML=''; connections.clear();
+    leftP5.forEach((w,i)=>{ const d=document.createElement('div'); d.className='node'; d.textContent=(i+1)+'. '+w; d.dataset.index=i; leftCol.appendChild(d); leftNodes[i]=d; });
+    rightP5.forEach((w,i)=>{ const d=document.createElement('div'); d.className='node'; d.textContent=String.fromCharCode(1072+i)+') '+w; d.dataset.index=i; rightCol.appendChild(d); rightNodes[i]=d; });
+  }
+  renderP5();
+
+  let selectedLeft = null;
+  leftCol.addEventListener('click', e=>{
+    const node = e.target.closest('.node'); if(!node) return; leftNodes.forEach(n=>n.classList.remove('active'));
+    node.classList.add('active'); selectedLeft = +node.dataset.index;
+  });
+  rightCol.addEventListener('click', e=>{
+    const node = e.target.closest('.node'); if(!node || selectedLeft===null) return;
+    const rIndex = +node.dataset.index; // set / replace connection
+    connections.set(selectedLeft, rIndex);
+    leftNodes.forEach(n=>n.classList.remove('active')); selectedLeft = null; drawLines();
+  });
+
+  function drawLines(){
+    svg.innerHTML='';
+    const lRect = leftCol.getBoundingClientRect(); const rRect = rightCol.getBoundingClientRect(); const wrapRect = $('#matchWrap').getBoundingClientRect();
+    connections.forEach((rIndex,lIndex)=>{
+      const a = leftNodes[lIndex].getBoundingClientRect();
+      const b = rightNodes[rIndex].getBoundingClientRect();
+      const x1 = a.right - wrapRect.left; const y1 = a.top + a.height/2 - wrapRect.top;
+      const x2 = b.left - wrapRect.left;  const y2 = b.top + b.height/2 - wrapRect.top;
+      const path = document.createElementNS('http://www.w3.org/2000/svg','path');
+      const m = `M ${x1} ${y1} C ${x1+80} ${y1}, ${x2-80} ${y2}, ${x2} ${y2}`;
+      path.setAttribute('d', m);
+      path.setAttribute('stroke', 'url(#grad)'); path.setAttribute('stroke-width','3'); path.setAttribute('fill','none');
+      path.addEventListener('click', ()=>{ connections.delete(lIndex); drawLines(); });
+      svg.appendChild(path);
+    });
+    // gradient def
+    if(!$('#gdef', svg)){
+      const defs = document.createElementNS('http://www.w3.org/2000/svg','defs');
+      const lg = document.createElementNS('http://www.w3.org/2000/svg','linearGradient'); lg.id='grad'; lg.innerHTML = `<stop offset="0%" stop-color="${getComputedStyle(document.documentElement).getPropertyValue('--accent').trim()}"></stop><stop offset="100%" stop-color="${getComputedStyle(document.documentElement).getPropertyValue('--accent2').trim()}"></stop>`; defs.id='gdef';
+      defs.appendChild(lg); svg.appendChild(defs);
+    }
+  }
+  window.addEventListener('resize', drawLines);
+
+  $('#p5Check').onclick=()=>{
+    let ok=0; leftP5.forEach((word, i)=>{ const rIdx = connections.get(i); if(rIdx!=null){ const chosen= rightP5[rIdx]; if(correctMapP5[word]===chosen) ok++; }});
+    $('#p5Fb').innerHTML = ok===leftP5.length ? `<span class="ok">Идеально! ${ok}/${leftP5.length} связей верны.</span>` : `Правильно: <b>${ok}</b> из <b>${leftP5.length}</b>. Нажми на линию, чтобы удалить и попробовать снова.`;
+    score += ok; updateProgress();
+  }
+  $('#p5Reset').onclick=()=>{ renderP5(); $('#p5Fb').textContent=''; drawLines(); }
+
+</script>ы
+</body>
+</html>

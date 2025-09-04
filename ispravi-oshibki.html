@@ -1,0 +1,279 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Исправь ошибку</title>
+    <style>
+        /* --- Обновленные и новые стили для игры --- */
+        @import url('https://fonts.googleapis.com/css2?family=Fredoka:wght@400;700&display=swap');
+
+        /* Используем более дружелюбный шрифт и добавляем плавные переходы */
+        * {
+            box-sizing: border-box;
+            transition: all 0.4s ease-in-out;
+        }
+
+        body {
+            font-family: 'Fredoka', 'Comic Sans MS', cursive, sans-serif;
+            background: linear-gradient(135deg, #a7e1ff, #f3d4ff, #ffb6c1);
+            background-size: 400% 400%;
+            animation: gradientMove 15s ease infinite;
+            text-align: center;
+            padding: 20px;
+            min-height: 100vh;
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            color: #333;
+            overflow: hidden;
+            cursor: url('https://raw.githubusercontent.com/google/material-design-icons/master/png/action/2x/baseline_touch_app_black_24dp.png') 12 12, auto;
+        }
+
+        @keyframes gradientMove {
+            0% {
+                background-position: 0% 50%;
+            }
+            50% {
+                background-position: 100% 50%;
+            }
+            100% {
+                background-position: 0% 50%;
+            }
+        }
+
+        h1 {
+            font-size: 4em;
+            color: #4b0082;
+            text-shadow: 4px 4px 10px rgba(0, 0, 0, 0.2);
+            margin-bottom: 30px;
+            animation: fadeInDown 1.5s ease-out;
+            letter-spacing: 2px;
+        }
+
+        @keyframes fadeInDown {
+            from {
+                opacity: 0;
+                transform: translateY(-50px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        #task {
+            font-size: 2.5em;
+            font-weight: bold;
+            margin: 20px auto;
+            padding: 30px;
+            border: 4px solid #6a5acd;
+            max-width: 800px;
+            background: rgba(255, 255, 255, 0.95);
+            border-radius: 25px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.3);
+            line-height: 1.5;
+            animation: popUp 0.8s cubic-bezier(0.175, 0.885, 0.32, 1.275);
+            color: #5d3493;
+            position: relative;
+            z-index: 10;
+        }
+
+        @keyframes popUp {
+            from {
+                transform: scale(0.9);
+                opacity: 0;
+            }
+            to {
+                transform: scale(1);
+                opacity: 1;
+            }
+        }
+
+        input {
+            padding: 15px 20px;
+            font-size: 2em;
+            border-radius: 15px;
+            border: 3px solid #6a5acd;
+            width: 80%;
+            max-width: 500px;
+            margin-top: 25px;
+            text-align: center;
+            transition: 0.4s;
+            background: rgba(255, 255, 255, 0.8);
+            font-weight: bold;
+            color: #333;
+            z-index: 10;
+        }
+
+        input:focus {
+            border-color: #ff69b4;
+            box-shadow: 0 0 15px rgba(255, 105, 180, 0.7);
+            outline: none;
+            transform: scale(1.02);
+        }
+
+        button {
+            padding: 18px 36px;
+            font-size: 2em;
+            margin: 20px 15px;
+            cursor: pointer;
+            border: none;
+            border-radius: 15px;
+            background: linear-gradient(135deg, #ff7eb3, #ff758c);
+            color: white;
+            font-weight: bold;
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.3);
+            transition: transform 0.3s, box-shadow 0.3s, background 0.4s;
+            letter-spacing: 1px;
+            z-index: 10;
+        }
+
+        button:hover {
+            background: linear-gradient(135deg, #ff4e88, #ff6f91);
+            transform: translateY(-5px) scale(1.05);
+            box-shadow: 0 12px 25px rgba(0, 0, 0, 0.4);
+        }
+
+        #checkBtn {
+            background: linear-gradient(135deg, #70a1ff, #5f75e0);
+        }
+
+        #checkBtn:hover {
+            background: linear-gradient(135deg, #5f75e0, #4c62d0);
+        }
+
+        #result {
+            font-size: 2.5em;
+            margin-top: 30px;
+            font-weight: bold;
+            animation: fadeIn 1s ease-in-out;
+            text-shadow: 1px 1px 3px rgba(0, 0, 0, 0.1);
+            z-index: 10;
+        }
+
+        @keyframes fadeIn {
+            from {
+                opacity: 0;
+                transform: translateY(20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* Эффект мерцающих звезд */
+        .star {
+            position: absolute;
+            width: 5px;
+            height: 5px;
+            background: white;
+            border-radius: 50%;
+            opacity: 0;
+            animation: twinkle 5s linear infinite;
+            box-shadow: 0 0 5px 2px rgba(255, 255, 255, 0.8);
+        }
+
+        @keyframes twinkle {
+            0%, 100% {
+                opacity: 0;
+            }
+            50% {
+                opacity: 1;
+            }
+        }
+    </style>
+</head>
+<body>
+
+    <h1>✏️ Исправь ошибку</h1>
+    <div id="task"></div>
+    <input type="text" id="answer" placeholder="Напиши правильно">
+    <br>
+    <button id="checkBtn">✅ Проверить</button>
+    <button id="nextBtn">➡ Следующее</button>
+    <div id="result"></div>
+
+    <script>
+        const tasks = [
+            { wrong: "машына", right: "машина" },
+            { wrong: "сибака", right: "собака" },
+            { wrong: "рибака", right: "рыба" },
+            { wrong: "дивчонка", right: "девчонка" },
+            { wrong: "вапрос", right: "вопрос" },
+            { wrong: "ветир", right: "ветер" },
+            { wrong: "дижурный", right: "дежурный" },
+            { wrong: "пловецц", right: "пловец" },
+            { wrong: "дрюжба", right: "дружба" },
+            { wrong: "коласо", right: "колесо" },
+            { wrong: "яблоко", right: "яблоко" },
+            { wrong: "карандашш", right: "карандаш" },
+            { wrong: "урокк", right: "урок" },
+            { wrong: "зимаа", right: "зима" },
+            { wrong: "солнышко", right: "солнышко" },
+            { wrong: "рюкзакк", right: "рюкзак" },
+            { wrong: "книгиы", right: "книги" },
+            { wrong: "лесокк", right: "лесок" },
+            { wrong: "стулл", right: "стул" },
+            { wrong: "медведьь", right: "медведь" },
+            { wrong: "Мальчик пашёл в школо.", right: "Мальчик пошёл в школу." },
+            { wrong: "В лесу растёт грыбы.", right: "В лесу растут грибы." },
+            { wrong: "У девочки новий платья.", right: "У девочки новое платье." },
+            { wrong: "Папа чытал мне сказку.", right: "Папа читал мне сказку." },
+            { wrong: "Кошка лэжыт на коврике.", right: "Кошка лежит на коврике." },
+            { wrong: "Мы пошли кататся на санках.", right: "Мы пошли кататься на санках." },
+            { wrong: "У бабушки вкусный варэник.", right: "У бабушки вкусные вареники." },
+            { wrong: "Сегодня светыт солнце.", right: "Сегодня светит солнце." },
+            { wrong: "На улице идёт сильный дожди.", right: "На улице идёт сильный дождь." },
+            { wrong: "У меня есьт новый пенал.", right: "У меня есть новый пенал." },
+            { wrong: "Девочка рисует красками на листике.", right: "Девочка рисует красками на листе." },
+            { wrong: "Мальчики играют в футболь.", right: "Мальчики играют в футбол." },
+            { wrong: "Петя и Вася пошли на рыбалко.", right: "Петя и Вася пошли на рыбалку." },
+            { wrong: "У меня два карандашика синего цвета.", right: "У меня два карандаша синего цвета." },
+            { wrong: "Мы с мамой купили апельсинны.", right: "Мы с мамой купили апельсины." },
+            { wrong: "Я катался на велосипеде по дорге.", right: "Я катался на велосипеде по дороге." },
+            { wrong: "В зоопарке я видел слона и зебры.", right: "В зоопарке я видел слона и зебру." },
+            { wrong: "У меня дома живёт попугайчик зеленая.", right: "У меня дома живёт зелёный попугайчик." },
+            { wrong: "На столе стоял вазочка с цветки.", right: "На столе стояла вазочка с цветами." },
+            { wrong: "Мы дружно отметели праздник.", right: "Мы дружно отметили праздник." }
+        ];
+
+        let currentTask = {};
+        const taskDiv = document.getElementById("task");
+        const answerInput = document.getElementById("answer");
+        const resultDiv = document.getElementById("result");
+        const checkBtn = document.getElementById("checkBtn");
+        const nextBtn = document.getElementById("nextBtn");
+
+        function newTask() {
+            currentTask = tasks[Math.floor(Math.random() * tasks.length)];
+            taskDiv.textContent = "Исправь ошибку: " + currentTask.wrong;
+            answerInput.value = "";
+            resultDiv.textContent = "";
+        }
+
+        checkBtn.onclick = () => {
+            let userAnswer = answerInput.value.trim();
+            if (userAnswer === "") {
+                resultDiv.textContent = "✏️ Напиши правильный вариант!";
+                resultDiv.style.color = "orange";
+                return;
+            }
+            if (userAnswer === currentTask.right) {
+                resultDiv.textContent = "✅ Молодец! Всё правильно!";
+                resultDiv.style.color = "green";
+            } else {
+                resultDiv.textContent = "❌ Ошибка. Правильный ответ: " + currentTask.right;
+                resultDiv.style.color = "red";
+            }
+        };
+
+        nextBtn.onclick = newTask;
+
+        newTask();
+    </script>
+
+</body>
+</html>

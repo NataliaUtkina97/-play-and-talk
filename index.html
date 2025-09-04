@@ -1,0 +1,204 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Фонематический слух 🎧</title>
+    <style>
+        @import url('https://fonts.googleapis.com/css2?family=Comfortaa:wght@400;700&display=swap');
+
+        body {
+            font-family: 'Comfortaa', cursive, sans-serif;
+            /* Изменённый градиент от розового к фиолетовому */
+            background: linear-gradient(135deg, #fbc2eb, #a6c1ee, #ffb6c1);
+            background-size: 400% 400%;
+            animation: gradientMove 15s ease infinite; /* Анимация движения градиента */
+            margin: 0;
+            padding: 0;
+            color: #4a2d0f; /* Темно-коричневый текст для контраста */
+            text-align: center;
+            position: relative;
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            overflow-y: auto;
+            overflow-x: hidden;
+        }
+
+        /* Анимация движения градиента */
+        @keyframes gradientMove {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+
+        /* Анимация падающих звезд/конфетти */
+        .falling-element {
+            position: fixed;
+            background: rgba(255, 255, 255, 0.7);
+            border-radius: 50%;
+            opacity: 0;
+            animation: fall linear infinite;
+            pointer-events: none;
+            z-index: 0; /* Убедимся, что падающие элементы находятся сзади контента */
+        }
+
+        @keyframes fall {
+            0% {
+                transform: translate(0, -100px) rotate(0deg);
+                opacity: 0;
+            }
+            10% {
+                opacity: 1;
+            }
+            100% {
+                transform: translate(0, 100vh) rotate(720deg);
+                opacity: 0;
+            }
+        }
+
+        h1 {
+            padding: 20px;
+            font-size: 4.5em;
+            color: #8A2BE2; /* Яркий фиолетовый */
+            text-shadow: 4px 4px 15px rgba(0, 0, 0, 0.3), 0 0 20px #E6E6FA; /* Двойная тень для глубины */
+            margin-bottom: 50px;
+            letter-spacing: 3px;
+            animation: textPop 1.5s ease-out;
+            z-index: 1; /* Убедимся, что заголовок находится поверх падающих элементов */
+        }
+
+        @keyframes textPop {
+            0% { transform: scale(0.8) rotate(-5deg); opacity: 0; }
+            50% { transform: scale(1.1) rotate(5deg); opacity: 1; }
+            100% { transform: scale(1) rotate(0deg); }
+        }
+
+        .menu {
+            display: grid;
+            gap: 30px;
+            max-width: 550px;
+            margin: auto;
+            padding: 40px;
+            background: rgba(255, 255, 255, 0.85); /* Слегка увеличил непрозрачность фона */
+            border-radius: 40px;
+            box-shadow: 0 20px 50px rgba(0, 0, 0, 0.4), inset 0 0 25px rgba(255, 255, 255, 0.6);
+            backdrop-filter: blur(10px);
+            position: relative;
+            z-index: 1;
+            border: 5px solid #a6c1ee; /* Рамка в тон новому градиенту */
+            animation: menuBounce 1s ease-out;
+        }
+
+        @keyframes menuBounce {
+            0% { transform: translateY(-50px); opacity: 0; }
+            100% { transform: translateY(0); opacity: 1; }
+        }
+
+        button {
+            padding: 25px;
+            border: none;
+            border-radius: 25px;
+            font-size: 2em;
+            /* Яркий синий градиент */
+            background: linear-gradient(145deg, #6a5acd, #a6c1ee); /* Новый градиент для кнопок */
+            color: #fff;
+            cursor: pointer;
+            transition: all 0.4s ease-in-out;
+            box-shadow: 0 10px 25px rgba(0, 0, 0, 0.3);
+            text-shadow: 2px 2px 5px rgba(0, 0, 0, 0.4);
+            position: relative;
+            overflow: hidden;
+            font-weight: bold;
+            transform: scale(1);
+        }
+
+        button:hover {
+            transform: translateY(-10px) scale(1.05);
+            /* Розово-малиновый при наведении */
+            background: linear-gradient(145deg, #ff6f91, #ff9a9e); /* Новый градиент при наведении */
+            box-shadow: 0 15px 30px rgba(0, 0, 0, 0.5), 0 0 30px #ff6f91;
+            color: #fff;
+        }
+
+        /* Анимация "пульсации" для иконок */
+        .icon-pulse {
+            animation: pulse 1.5s infinite;
+            display: inline-block;
+        }
+
+        @keyframes pulse {
+            0% { transform: scale(1); }
+            50% { transform: scale(1.15); }
+            100% { transform: scale(1); }
+        }
+
+        /* Медиа-запросы для адаптивности */
+        @media (max-width: 768px) {
+            h1 {
+                font-size: 3em;
+                margin-bottom: 30px;
+            }
+            .menu {
+                padding: 25px;
+                gap: 20px;
+            }
+            button {
+                font-size: 1.5em;
+                padding: 20px;
+            }
+        }
+
+        @media (max-width: 480px) {
+            h1 {
+                font-size: 2.5em;
+                margin-bottom: 20px;
+            }
+            .menu {
+                padding: 15px;
+                gap: 15px;
+                border-radius: 30px;
+            }
+            button {
+                font-size: 1.2em;
+                padding: 15px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <h1>Игры для развития речи 🎲</h1>
+    <div class="menu">
+        <button onclick="location.href='lovim-zvuk.html'"><span class="icon-pulse">🎧</span> Ловим звук</button>
+        <button onclick="location.href='najdi-paru.html'"><span class="icon-pulse">🃏</span> Найди пару</button>
+        <button onclick="location.href='rasskaz.html'"><span class="icon-pulse">📖</span> Собери рассказ</button>
+        <button onclick="location.href='sinonimy.html'"><span class="icon-pulse">🤝</span> Синонимы и антонимы</button>
+        <button onclick="location.href='ispravi-oshibki.html'"><span class="icon-pulse">✏️</span> Исправь ошибки</button>
+        <button onclick="location.href='chtenie.html'"><span class="icon-pulse">📢</span> Прочитай выразительно</button>
+    </div>
+
+    <script>
+        // Создание анимированных падающих элементов
+        function createFallingElements() {
+            const count = 30; // Количество падающих элементов
+            for (let i = 0; i < count; i++) {
+                const element = document.createElement('div');
+                element.classList.add('falling-element');
+                const size = Math.random() * 15 + 5; // Размер от 5px до 20px
+                element.style.width = `${size}px`;
+                element.style.height = `${size}px`;
+                element.style.left = `${Math.random() * 100}vw`; // Случайная позиция по горизонтали
+                element.style.animationDuration = `${Math.random() * 8 + 4}s`; // Случайная скорость
+                element.style.animationDelay = `${Math.random() * 5}s`; // Случайная задержка
+                // Используем цвета из палитры градиента, чтобы они гармонировали
+                const colors = ['#fbc2eb', '#a6c1ee', '#ffb6c1', '#8A2BE2', '#ff6f91'];
+                element.style.backgroundColor = colors[Math.floor(Math.random() * colors.length)];
+                element.style.boxShadow = `0 0 ${size/2}px ${size/4}px ${element.style.backgroundColor}`; // Добавляем свечение
+                document.body.appendChild(element);
+            }
+        }
+        window.onload = createFallingElements;
+    </script>
+</body>
+</html>
