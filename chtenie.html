@@ -1,0 +1,152 @@
+
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+<meta charset="UTF-8">
+<title>Прочитай выразительно</title>
+<style>
+    body {
+        font-family: "Comic Sans MS", "Trebuchet MS", Arial, sans-serif;
+        background: linear-gradient(135deg, #f9f0ff, #e0f7ff);
+        text-align: center;
+        padding: 40px;
+        min-height: 100vh;
+        margin: 0;
+    }
+
+    h1 {
+        font-size: 36px;
+        color: #4b0082;
+        text-shadow: 2px 2px 6px rgba(0,0,0,0.2);
+        margin-bottom: 30px;
+        animation: fadeIn 1.5s ease-in-out;
+    }
+
+    #text {
+        font-size: 22px;
+        margin: 20px auto;
+        padding: 25px;
+        border: 3px solid #6a0dad;
+        max-width: 650px;
+        background: #fff;
+        border-radius: 20px;
+        box-shadow: 0 6px 20px rgba(106, 13, 173, 0.25);
+        line-height: 1.5;
+        transition: transform 0.3s;
+    }
+
+    #text:hover {
+        transform: scale(1.03);
+    }
+
+    button {
+        padding: 14px 28px;
+        font-size: 20px;
+        margin: 15px;
+        cursor: pointer;
+        border: none;
+        border-radius: 12px;
+        background: linear-gradient(135deg, #ba55d3, #9932cc);
+        color: white;
+        font-weight: bold;
+        box-shadow: 0 4px 12px rgba(0,0,0,0.25);
+        transition: transform 0.2s, background 0.3s;
+    }
+
+    button:hover {
+        background: linear-gradient(135deg, #9932cc, #6a0dad);
+        transform: translateY(-3px);
+    }
+
+    #result {
+        font-size: 20px;
+        margin-top: 25px;
+        color: #333;
+        font-weight: bold;
+        animation: fadeIn 1s;
+    }
+
+    /* Анимация плавного появления */
+    @keyframes fadeIn {
+        from { opacity: 0; transform: translateY(15px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
+</style>
+</head>
+<body>
+
+<h1>🎭 Прочитай выразительно!</h1>
+<div id="text"></div>
+<button id="startBtn">🎤 Начать чтение</button>
+<div id="result"></div>
+
+<script>
+    const texts = [
+        "Смотри, какое яркое солнце взошло над лесом!",
+        "Как весело щебечут птички на ветках!",
+        "Вот и дождик застучал по крыше.",
+        "Ай-ай-ай, кто это оставил следы на чистом полу?",
+        "Какая пушистая кошка сидит у окна!",
+        "Ах, как приятно пахнут весенние цветы!",
+        "Что это там зашуршало в траве?",
+        "Ура! Мы построили огромную снежную крепость!",
+        "Ого, какая большая книга лежит на столе!",
+        "Тише, ребята, пчела жужжит над цветком.",
+        "Ба-бах! Загремел гром над домом.",
+        "Сколько ярких звёзд на ночном небе!",
+        "Кто так громко стучит в дверь?",
+        "Эй, ребята, идите скорее сюда!",
+        "Ой, какая холодная вода в реке!",
+        "Как красиво играет солнечный зайчик на стене!",
+        "Где же спрятался наш котёнок?",
+        "Вот оно, долгожданное лето!",
+        "Ах, какая вкусная клубника поспела в саду!",
+        "Смотри, снежинка упала прямо на ладошку!"
+    ];
+
+    let currentText = "";
+    const textDiv = document.getElementById("text");
+    const resultDiv = document.getElementById("result");
+    const startBtn = document.getElementById("startBtn");
+
+    function newText() {
+        currentText = texts[Math.floor(Math.random() * texts.length)];
+        textDiv.textContent = currentText;
+        resultDiv.textContent = "";
+    }
+
+    newText();
+
+    startBtn.onclick = () => {
+        if (!('webkitSpeechRecognition' in window)) {
+            alert("Ваш браузер не поддерживает распознавание речи");
+            return;
+        }
+
+        const recognition = new webkitSpeechRecognition();
+        recognition.lang = "ru-RU";
+        recognition.interimResults = false;
+        recognition.maxAlternatives = 1;
+
+        recognition.start();
+
+        resultDiv.textContent = "🎙 Говорите выразительно...";
+
+        recognition.onresult = (event) => {
+            let said = event.results[0][0].transcript.trim();
+            if (said.toLowerCase() === currentText.toLowerCase()) {
+                resultDiv.innerHTML = "✅ Отлично! Ты выразительно прочитал!";
+                setTimeout(newText, 2500);
+            } else {
+                resultDiv.innerHTML = `❌ Ты сказал: "${said}". Попробуй выразительнее!`;
+            }
+        };
+
+        recognition.onerror = (e) => {
+            resultDiv.textContent = "Ошибка: " + e.error;
+        };
+    };
+</script>
+
+</body>
+</html>
